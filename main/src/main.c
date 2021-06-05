@@ -7,10 +7,18 @@
 #define ESP_MAXIMUM_RETRY  3
 #define GPIO_PIN_DHT 16
 
-const server_endpoint dht_server={
-      "example.com",
-      "http://example.com/sound_recorder/receive_sound/"
+static const char *MAIN_TAG = "main";
+
+const server_endpoint dht_server_temp={
+      "ec2-18-221-10-42.us-east-2.compute.amazonaws.com",
+      "http://ec2-18-221-10-42.us-east-2.compute.amazonaws.com/environment_monitor/get_temperature_data/"
 }
+
+const server_endpoint dht_server_hum={
+      "ec2-18-221-10-42.us-east-2.compute.amazonaws.com",
+      "http://ec2-18-221-10-42.us-east-2.compute.amazonaws.com/environment_monitor/get_humidity_data/"
+}
+
 
 wifi_config_t wifi_config = {
       .sta = {
@@ -47,6 +55,7 @@ static void event_handler(void* arg, esp_event_base_t event_base,
 
 static void transmit_data_task(){
    // Init variables
+   ESP_LOGI(MAIN_TAG, "Transmit data task started");
    DhtSensor dht_sensor;
    dht_sensor.dht_pin = GPIO_PIN_DHT;
    dht_sensor.dht_type = DHT_11;
@@ -54,21 +63,30 @@ static void transmit_data_task(){
 
    // Transmission
    while (1){
+      ESP_LOGI(MAIN_TAG, "Reading data from sensor");
       dht_read_data(&dht_sensor);
       // Transforming data from float to char array
+      ESP_LOGI(MAIN_TAG, "Transforming variables into strings");
       char chTemperature[6];
       snprintf(chTemperature, 6, "%f", dht_sensor.temperature);
       char chHumidity[6];
       snprintf(chHumidity, 6, "%f", dht_sensor.humidity);
       // Constructing message
-      char post_data[32];
-      strcpy(post_data, "{'temperature':");
-      strcat(post_data, chTemperature);
-      strcat(post_data, ",'humidity':");
-      strcat(post_data, chHumidity);
-      strcat(post_data, "}");
+      ESP_LOGI(MAIN_TAG, "Constructing temperature message");
+      char post_data_temp[24];
+      strcpy(post_data_temp, "{'temperature':");
+      strcat(post_data_temp, chTemperature);
+      strcat(post_data_temp, "}");
       // Sending message
-      send_http_post_request(post_data, WEB_SERVER, WEB_URL);
+      ESP_LOGI(MAIN_TAG, "Sending temperature data");
+      send_http_post_request(post_data_temp, dht_server_temp.web_server, dht_server_temp.web_url);
+      ESP_LOGI(MAIN_TAG, "Constructing humidity message");
+      char post_data_hum[24];
+      strcpy(post_data_hum, "{'humidity':");
+      strcat(post_data_hum, chHumidity);
+      strcat(post_data_hum, "}");
+      ESP_LOGI(MAIN_TAG, "Sending humidity data");
+      send_http_post_request(post_data_hum, dht_server_hum.web_server, dht_server_hum.web_url);
       // Wait before sending another message
       vTaskDelay(300000/portTICK_RATE_MS);
    }

@@ -7,6 +7,7 @@
  *             for dht sensor.
  */
 DhtSensor dht_config(DhtSensor *dht_sensor){
+   ESP_LOGI(DHT_TAG, "Configuring dht sensor");
    gpio_config_t io_conf;
    io_conf.intr_type = GPIO_INTR_DISABLE;
    io_conf.mode = GPIO_MODE_INPUT;
@@ -29,6 +30,7 @@ DhtSensor dht_config(DhtSensor *dht_sensor){
  *             dht.humidity to retrive read data
  */
 void dht_read_data(DhtSensor *dht_sensor){
+   ESP_LOGI(DHT_TAG, "dht read data started");
    // Store dht data
    int data[5] = {0, 0, 0, 0, 0};
    // Counts how many microseconds the pin is in high or in low state
