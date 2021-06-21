@@ -3,6 +3,6 @@
 # project subdirectory.
 #
 
-PROJECT_NAME := adc-calibration
+PROJECT_NAME := iot-multisensor
 
 include $(IDF_PATH)/make/project.mk

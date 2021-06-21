@@ -1,14 +1,30 @@
+/*
+ * dht_driver.h
+ * Description: Definition of functions to read data from dht 11
+ *    and dht 22 sensors.
+ * Author: Juan Manuel Neyra
+ *
+ */
+#ifndef IOT_DHT_DRIVER
+#define IOT_DHT_DRIVER
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "freertos/queue.h"
+#include "esp_task_wdt.h"
 
 #include "driver/gpio.h"
 
 #include "esp_log.h"
 #include "esp_system.h"
+
+#include "configuration.h"
+#include "http_request.h"
 
 // Amount of cycles to be transmitted
 #define CYCLES_READ 40
@@ -35,6 +51,37 @@ typedef struct DhtSensor {
    Dht_Type dht_type;
    float temperature;
    float humidity;
+   uint8_t decimal_place;
 } DhtSensor;
 
-static const char *DHT_TAG = "dht";
+
+/*
+ * dht_config: Configure gpio port for dht sensor
+ *       Arguments:
+ *          -dht_sensor: DhtSensor struct. Contains configuration options
+ *             for dht sensor.
+ */
+void dht_config(DhtSensor **dht_sensor);
+
+
+/*
+ * dht_read_data: Get temperature and humidity values from sensors
+ *       Arguments:
+ *          -dht_sensor: DhtSensor struct. Use dht_sensor.temperature and
+ *             dht.humidity to retrive read data
+ */
+void dht_read_data(DhtSensor **dht_sensor);
+
+
+/*
+ * send_dht_data_with_http: Send dht data with http
+ *       Arguments:
+ *          -dht_sensor: DhtSensor struct. Use dht_sensor.temperature and
+ *             dht.humidity to retrive read data
+ *          -http_server_configuration: http_server_configuration struct.
+ *             Information of the server where to send the data to
+ */
+void send_dht_data_with_http(DhtSensor *dht_sensor,
+         http_server_configuration http_server_configuration);
+
+#endif
