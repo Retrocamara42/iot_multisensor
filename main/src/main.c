@@ -32,7 +32,7 @@ static void transmit_data_task(){
       /******** DHT ***********/
       if(server_configuration.dhtActive){
          dht_read_data(&dht_sensor);
-         send_dht_data_with_http(dht_sensor, server_configuration);
+         send_dht_data_with_mqtt(dht_sensor, server_configuration);
       }
 
       /********** SLEEP ************/
@@ -57,11 +57,11 @@ void app_main(){
    take_from_wifi_semaphore(portMAX_DELAY);
    delete_wifi_semaphore();
 
-   // Init tcp/ip stack
-   /********************* TCP SETUP **********************************/
-   esp_task_wdt_reset();
+   /********************* MQTT SETUP **********************************/
+   ESP_ERROR_CHECK(nvs_flash_init());
    ESP_ERROR_CHECK(esp_netif_init());
-   esp_task_wdt_reset();
+   ESP_ERROR_CHECK(esp_event_loop_create_default());
+   client = mqtt_app_start(mqtt_cfg);
 
    // Create task to transmit data
    xTaskCreate(transmit_data_task, "transmit_data_task", 2048*2, NULL, 0, NULL);

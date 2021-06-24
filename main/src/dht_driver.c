@@ -206,3 +206,16 @@ void send_dht_data_with_http(DhtSensor *dht_sensor,
    esp_task_wdt_reset();
    send_http_post_request(post_data_hum, http_server_configuration.humidity_url);
 }
+
+
+
+/*
+ * send_dht_data_with_mqtt: Send dht data with http
+ *       Arguments:
+ *          -dht_sensor: DhtSensor struct. Use dht_sensor.temperature and
+ *             dht.humidity to retrive read data
+ *          -http_server_configuration: http_server_configuration struct.
+ *             Information of the server where to send the data to
+ */
+void send_dht_data_with_http(DhtSensor *dht_sensor,
+         http_server_configuration mqtt_configuration){
