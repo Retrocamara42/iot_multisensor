@@ -84,4 +84,21 @@ void dht_read_data(DhtSensor **dht_sensor);
 void send_dht_data_with_http(DhtSensor *dht_sensor,
          http_server_configuration http_server_configuration);
 
+
+/*
+ * send_dht_data_with_mqtt: Send dht data with mqtt
+ *       Arguments:
+ *          -dht_sensor: DhtSensor struct. Use dht_sensor.temperature and
+ *             dht.humidity to retrive read data
+ *          -client: esp_mqtt_client_handle_t. Mqtt client.
+ *          -mqtt_configuration: esp_mqtt_client_config_t struct.
+ *             Mqtt broker configuration
+ *          -topic_temp: char*. Name of the topic to publish temperature data
+ *          -topic_humid: char*. Name of the topic to publish humidity data
+ */
+void send_dht_data_with_mqtt(DhtSensor *dht_sensor,
+         esp_mqtt_client_handle_t client,
+         esp_mqtt_client_config_t mqtt_configuration,
+         char* topic_temp, char* topic_humid);
+
 #endif

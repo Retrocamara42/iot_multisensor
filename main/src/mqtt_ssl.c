@@ -8,6 +8,20 @@
 */
 
 static const char *TAG = "MQTT_SSL";
+static uint8_t mqttStatusConnection=0;
+
+void default_on_event_data_cb(uint8_t topic_len, char* topic, uint8_t data_len, char* data) { }
+static on_event_data_cb mqtt_on_event_data_cb = &default_on_event_data_cb;
+
+
+/*
+ * mqtt_on_event_data_cb: Function that runs when the event MQTT_EVENT_DATA is active
+ *    Arguments:
+ *       - on_event_data_cb: void*. Custom function to run when data is received
+ */
+void set_mqtt_on_event_data_cb(void (*on_event_data_cb)(uint8_t topic_len, char* topic, uint8_t data_len, char* data)){
+   mqtt_on_event_data_cb=(*on_event_data_cb);
+}
 
 
 /*
@@ -22,17 +36,13 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event){
     switch(event->event_id){
         case MQTT_EVENT_CONNECTED:
             ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
-            msg_id = esp_mqtt_client_subscribe(client, "/topic/qos1", 1);
-            ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
-            //msg_id = esp_mqtt_client_unsubscribe(client, "/topic/qos1");
-            //ESP_LOGI(TAG, "sent unsubscribe successful, msg_id=%d", msg_id);
+            mqttStatusConnection=1;
             break;
         case MQTT_EVENT_DISCONNECTED:
+            mqttStatusConnection=0;
             break;
         case MQTT_EVENT_SUBSCRIBED:
             ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
-            //msg_id = esp_mqtt_client_publish(client, "/topic/qos0", "data", 0, 0, 0);
-            //ESP_LOGI(TAG, "sent publish successful, msg_id=%d", msg_id);
             break;
         case MQTT_EVENT_UNSUBSCRIBED:
             break;
@@ -41,6 +51,7 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event){
         case MQTT_EVENT_DATA:
             printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
             printf("DATA=%.*s\r\n", event->data_len, event->data);
+            mqtt_on_event_data_cb(event->topic_len, event->topic, event->data_len, event->data);
             break;
         case MQTT_EVENT_ERROR:
             if (event->error_handle->error_type == MQTT_ERROR_TYPE_ESP_TLS) {
@@ -84,4 +95,31 @@ esp_mqtt_client_handle_t mqtt_app_start(esp_mqtt_client_config_t mqtt_cfg){
     esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, client);
     esp_mqtt_client_start(client);
     return client;
+}
+
+
+/*
+ * mqtt_subscribe: Subscribe to mqtt topic
+ *    Arguments:
+ *       - client: esp_mqtt_client_handle_t. Mqtt client.
+ *       - topic: char*. Topic to subscribe to.
+ *       - qos: uint8_t. Quality of service.
+ */
+void mqtt_subscribe(esp_mqtt_client_handle_t client, char* topic, uint8_t qos){
+   msg_id = esp_mqtt_client_subscribe(client, topic, qos);
+   ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
+}
+
+
+
+/*
+ * mqtt_unsubscribe: Unsubscribe to mqtt topic
+ *    Arguments:
+ *       - client: esp_mqtt_client_handle_t. Mqtt client.
+ *       - topic: char*. Topic to unsubscribe to.
+ *       - qos: uint8_t. Quality of service.
+ */
+void mqtt_unsubscribe(esp_mqtt_client_handle_t client, char* topic){
+   msg_id = esp_mqtt_client_unsubscribe(client, topic);
+   ESP_LOGI(TAG, "sent unsubscribe successful, msg_id=%d", msg_id);
 }

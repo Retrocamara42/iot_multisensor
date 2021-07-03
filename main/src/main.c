@@ -17,7 +17,7 @@ static void transmit_data_task(){
    // Init variables
    //ESP_LOGI(MAIN_TAG, "Creating data pointer with size %d",sizeof(DhtSensor));
    DhtSensor *dht_sensor;
-   if(server_configuration.dhtActive){
+   if(active_devices.dhtActive){
       dht_sensor = (DhtSensor*)malloc(sizeof(DhtSensor));
       dht_sensor->dht_pin = GPIO_PIN_DHT;
       dht_sensor->dht_type = DHT_11;
@@ -30,9 +30,9 @@ static void transmit_data_task(){
       esp_task_wdt_reset();
       ESP_LOGI(MAIN_TAG, "Reading data from sensors");
       /******** DHT ***********/
-      if(server_configuration.dhtActive){
+      if(active_devices.dhtActive){
          dht_read_data(&dht_sensor);
-         send_dht_data_with_mqtt(dht_sensor, server_configuration);
+         send_dht_data_with_mqtt(dht_sensor, mqtt_cfg);
       }
 
       /********** SLEEP ************/

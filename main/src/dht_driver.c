@@ -210,12 +210,51 @@ void send_dht_data_with_http(DhtSensor *dht_sensor,
 
 
 /*
- * send_dht_data_with_mqtt: Send dht data with http
+ * send_dht_data_with_mqtt: Send dht data with mqtt
  *       Arguments:
  *          -dht_sensor: DhtSensor struct. Use dht_sensor.temperature and
  *             dht.humidity to retrive read data
- *          -http_server_configuration: http_server_configuration struct.
- *             Information of the server where to send the data to
+ *          -client: esp_mqtt_client_handle_t. Mqtt client.
+ *          -mqtt_configuration: esp_mqtt_client_config_t struct.
+ *             Mqtt broker configuration
+ *          -topic_temp: char*. Name of the topic to publish temperature data
+ *          -topic_humid: char*. Name of the topic to publish humidity data
  */
-void send_dht_data_with_http(DhtSensor *dht_sensor,
-         http_server_configuration mqtt_configuration){
+void send_dht_data_with_mqtt(DhtSensor *dht_sensor,
+         esp_mqtt_client_handle_t client,
+         esp_mqtt_client_config_t mqtt_configuration,
+         char* topic_temp, char* topic_humid){
+   esp_task_wdt_reset();
+   uint8_t dht_dec_place=dht_sensor->decimal_place;
+   /******************** TEMPERATURE ***********************/
+   // PROCESSING
+   char chTemp[7];
+   float temperature=(float)dht_sensor->temperature;
+   int dec_temp=(int)((dht_dec_place*abs(temperature))%dht_dec_place);
+   snprintf(chTemp, sizeof chTemp, "%d.%d", (int)floor(temperature), dec_temp);
+   // SENDING
+   char post_data_temp[24];
+   strcpy(post_data_temp, "{\"temperature\":");
+   strcat(post_data_temp, chTemp);
+   strcat(post_data_temp, "}");
+   //ESP_LOGI(DHT_TAG, "Sending temperature data: %s",post_data_temp);
+   esp_task_wdt_reset();
+   msg_id = esp_mqtt_client_publish(client, topic_temp, post_data_temp, 0, 0, 0);
+   ESP_LOGI(TAG, "temp publish successful, msg_id=%d", msg_id);
+
+   /******************** HUMIDITY ***********************/
+   // PROCESSING
+   char chHumid[7];
+   float humidity=dht_sensor->humidity;
+   int dec_humid=(int)((dht_dec_place*abs(humidity))%dht_dec_place);
+   snprintf(chHumid, sizeof chHumid, "%d.%d", (int)floor(humidity), dec_humid);
+   // SENDING
+   char post_data_hum[24];
+   strcpy(post_data_hum, "{\"humidity\":");
+   strcat(post_data_hum, chHumid);
+   strcat(post_data_hum, "}");
+   //ESP_LOGI(DHT_TAG, "Sending humidity data: %s",post_data_hum);
+   esp_task_wdt_reset();
+   msg_id = esp_mqtt_client_publish(client, topic_humid, post_data_hum, 0, 0, 0);
+   ESP_LOGI(TAG, "humid publish successful, msg_id=%d", msg_id);
+}

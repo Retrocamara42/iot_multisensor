@@ -8,9 +8,12 @@
 #define IOT_CONFIGURATION
 
 typedef struct {
-   uint8_t dhtActive;
    char* temperature_url;
    char* humidity_url;
 }http_server_configuration;
+
+typedef struct {
+   uint8_t dhtActive;
+}active_devices;
 
 #endif
