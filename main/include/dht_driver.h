@@ -8,23 +8,19 @@
 #ifndef IOT_DHT_DRIVER
 #define IOT_DHT_DRIVER
 
-#include <stdio.h>
-#include <string.h>
 #include <stdlib.h>
 #include <math.h>
 
 #include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/queue.h"
 #include "esp_task_wdt.h"
 
 #include "driver/gpio.h"
 
 #include "esp_log.h"
-#include "esp_system.h"
 
 #include "configuration.h"
 #include "http_request.h"
+#include "mqtt_client.h"
 
 // Amount of cycles to be transmitted
 #define CYCLES_READ 40

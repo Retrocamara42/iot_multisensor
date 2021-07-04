@@ -6,8 +6,9 @@
    software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
    CONDITIONS OF ANY KIND, either express or implied.
 */
+#include "mqtt_ssl.h"
 
-static const char *TAG = "MQTT_SSL";
+static const char *MQTT_TAG = "MQTT_SSL";
 static uint8_t mqttStatusConnection=0;
 
 void default_on_event_data_cb(uint8_t topic_len, char* topic, uint8_t data_len, char* data) { }
@@ -30,19 +31,16 @@ void set_mqtt_on_event_data_cb(void (*on_event_data_cb)(uint8_t topic_len, char*
  *       - event: esp_mqtt_event_handle_t. Mqtt event.
  */
 static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event){
-    esp_mqtt_client_handle_t client = event->client;
-    int msg_id;
-    // your_context_t *context = event->context;
     switch(event->event_id){
         case MQTT_EVENT_CONNECTED:
-            ESP_LOGI(TAG, "MQTT_EVENT_CONNECTED");
+            ESP_LOGI(MQTT_TAG, "MQTT_EVENT_CONNECTED");
             mqttStatusConnection=1;
             break;
         case MQTT_EVENT_DISCONNECTED:
             mqttStatusConnection=0;
             break;
         case MQTT_EVENT_SUBSCRIBED:
-            ESP_LOGI(TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
+            ESP_LOGI(MQTT_TAG, "MQTT_EVENT_SUBSCRIBED, msg_id=%d", event->msg_id);
             break;
         case MQTT_EVENT_UNSUBSCRIBED:
             break;
@@ -55,12 +53,12 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event){
             break;
         case MQTT_EVENT_ERROR:
             if (event->error_handle->error_type == MQTT_ERROR_TYPE_ESP_TLS) {
-                ESP_LOGI(TAG, "Error esp-tls: 0x%x", event->error_handle->esp_tls_last_esp_err);
-                ESP_LOGI(TAG, "Tls stack error: 0x%x", event->error_handle->esp_tls_stack_err);
+                ESP_LOGI(MQTT_TAG, "Error esp-tls: 0x%x", event->error_handle->esp_tls_last_esp_err);
+                ESP_LOGI(MQTT_TAG, "Tls stack error: 0x%x", event->error_handle->esp_tls_stack_err);
             } else if (event->error_handle->error_type == MQTT_ERROR_TYPE_CONNECTION_REFUSED) {
-                ESP_LOGI(TAG, "Connection refused: 0x%x", event->error_handle->connect_return_code);
+                ESP_LOGI(MQTT_TAG, "Connection refused: 0x%x", event->error_handle->connect_return_code);
             } else {
-                ESP_LOGW(TAG, "Unknown error: 0x%x", event->error_handle->error_type);
+                ESP_LOGW(MQTT_TAG, "Unknown error: 0x%x", event->error_handle->error_type);
             }
             break;
         default:
@@ -90,8 +88,9 @@ static void mqtt_event_handler(void *handler_args, esp_event_base_t base, int32_
  *    Returns:
  *       - client: esp_mqtt_client_handle_t. Mqtt client.
  */
-esp_mqtt_client_handle_t mqtt_app_start(esp_mqtt_client_config_t mqtt_cfg){
-    esp_mqtt_client_handle_t client = esp_mqtt_client_init(&mqtt_cfg);
+esp_mqtt_client_handle_t mqtt_app_start(const esp_mqtt_client_config_t* mqtt_cfg){
+    ESP_LOGI(MQTT_TAG, "[APP] hey");
+    esp_mqtt_client_handle_t client = esp_mqtt_client_init(mqtt_cfg);
     esp_mqtt_client_register_event(client, ESP_EVENT_ANY_ID, mqtt_event_handler, client);
     esp_mqtt_client_start(client);
     return client;
@@ -106,8 +105,8 @@ esp_mqtt_client_handle_t mqtt_app_start(esp_mqtt_client_config_t mqtt_cfg){
  *       - qos: uint8_t. Quality of service.
  */
 void mqtt_subscribe(esp_mqtt_client_handle_t client, char* topic, uint8_t qos){
-   msg_id = esp_mqtt_client_subscribe(client, topic, qos);
-   ESP_LOGI(TAG, "sent subscribe successful, msg_id=%d", msg_id);
+   uint8_t msg_id = esp_mqtt_client_subscribe(client, topic, qos);
+   ESP_LOGI(MQTT_TAG, "sent subscribe successful, msg_id=%d", msg_id);
 }
 
 
@@ -120,6 +119,6 @@ void mqtt_subscribe(esp_mqtt_client_handle_t client, char* topic, uint8_t qos){
  *       - qos: uint8_t. Quality of service.
  */
 void mqtt_unsubscribe(esp_mqtt_client_handle_t client, char* topic){
-   msg_id = esp_mqtt_client_unsubscribe(client, topic);
-   ESP_LOGI(TAG, "sent unsubscribe successful, msg_id=%d", msg_id);
+   uint8_t msg_id = esp_mqtt_client_unsubscribe(client, topic);
+   ESP_LOGI(MQTT_TAG, "sent unsubscribe successful, msg_id=%d", msg_id);
 }

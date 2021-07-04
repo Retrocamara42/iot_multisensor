@@ -57,15 +57,11 @@ void wifi_init_sta(wifi_config_t wifi_config){
    esp_task_wdt_reset();
    // Disconnect before init
    esp_wifi_disconnect();
-   // NVS flash init
-   ESP_ERROR_CHECK(nvs_flash_init());
 
    s_wifi_event_group = xEventGroupCreate();
    // Init tcp/ip protocol
    esp_task_wdt_reset();
    tcpip_adapter_init();
-
-   ESP_ERROR_CHECK(esp_event_loop_create_default());
 
    // Init configuration
    esp_task_wdt_reset();

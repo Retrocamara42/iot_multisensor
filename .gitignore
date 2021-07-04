@@ -1,6 +1,6 @@
 /build/*
 /main/not_used/*
 sdkconfig.old
-/main/include/certificate.h
+/main/include/credentials.h
 /main/credentials/*
 *.gch

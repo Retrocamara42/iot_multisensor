@@ -11,14 +11,10 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stddef.h>
-#include <string.h>
-#include "esp_system.h"
 #include "esp_event.h"
-#include "esp_netif.h"
 
 #include "esp_log.h"
 #include "mqtt_client.h"
-#include "esp_ota_ops.h"
 
 typedef void (*on_event_data_cb)(uint8_t topic_len, char* topic, uint8_t data_len, char* data);
 
@@ -30,7 +26,7 @@ typedef void (*on_event_data_cb)(uint8_t topic_len, char* topic, uint8_t data_le
  *    Returns:
  *       - client: esp_mqtt_client_handle_t. Mqtt client.
  */
-esp_mqtt_client_handle_t mqtt_app_start(esp_mqtt_client_config_t mqtt_cfg);
+esp_mqtt_client_handle_t mqtt_app_start(const esp_mqtt_client_config_t* mqtt_cfg);
 
 
 /*

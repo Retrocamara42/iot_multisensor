@@ -233,14 +233,14 @@ void send_dht_data_with_mqtt(DhtSensor *dht_sensor,
    int dec_temp=(int)((dht_dec_place*abs(temperature))%dht_dec_place);
    snprintf(chTemp, sizeof chTemp, "%d.%d", (int)floor(temperature), dec_temp);
    // SENDING
-   char post_data_temp[24];
+   char post_data_temp[32];
    strcpy(post_data_temp, "{\"temperature\":");
    strcat(post_data_temp, chTemp);
    strcat(post_data_temp, "}");
    //ESP_LOGI(DHT_TAG, "Sending temperature data: %s",post_data_temp);
    esp_task_wdt_reset();
-   msg_id = esp_mqtt_client_publish(client, topic_temp, post_data_temp, 0, 0, 0);
-   ESP_LOGI(TAG, "temp publish successful, msg_id=%d", msg_id);
+   uint8_t msg_id = esp_mqtt_client_publish(client, topic_temp, post_data_temp, 0, 0, 0);
+   ESP_LOGI(DHT_TAG, "temp publish successful, msg_id=%d", msg_id);
 
    /******************** HUMIDITY ***********************/
    // PROCESSING
@@ -256,5 +256,5 @@ void send_dht_data_with_mqtt(DhtSensor *dht_sensor,
    //ESP_LOGI(DHT_TAG, "Sending humidity data: %s",post_data_hum);
    esp_task_wdt_reset();
    msg_id = esp_mqtt_client_publish(client, topic_humid, post_data_hum, 0, 0, 0);
-   ESP_LOGI(TAG, "humid publish successful, msg_id=%d", msg_id);
+   ESP_LOGI(DHT_TAG, "humid publish successful, msg_id=%d", msg_id);
 }
