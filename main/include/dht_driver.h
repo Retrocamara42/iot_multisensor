@@ -12,10 +12,10 @@
 #include <math.h>
 
 #include "freertos/FreeRTOS.h"
+#include "freertos/task.h"
 #include "esp_task_wdt.h"
 
 #include "driver/gpio.h"
-
 #include "esp_log.h"
 
 #include "configuration.h"
@@ -27,6 +27,7 @@
 
 // Number of retrys when reading dht data
 #define MAX_DHT_READING 5
+
 
 // Gpio level enum
 typedef enum{
@@ -74,11 +75,12 @@ void dht_read_data(DhtSensor **dht_sensor);
  *       Arguments:
  *          -dht_sensor: DhtSensor struct. Use dht_sensor.temperature and
  *             dht.humidity to retrive read data
+ *          -device_name: char*. Name of the device. To be part of the payload
  *          -http_server_configuration: http_server_configuration struct.
  *             Information of the server where to send the data to
  */
-void send_dht_data_with_http(DhtSensor *dht_sensor,
-         http_server_configuration http_server_configuration);
+ void send_dht_data_with_http(DhtSensor *dht_sensor,
+          char* device_name, http_server_configuration http_server_configuration);
 
 
 /*
@@ -86,6 +88,7 @@ void send_dht_data_with_http(DhtSensor *dht_sensor,
  *       Arguments:
  *          -dht_sensor: DhtSensor struct. Use dht_sensor.temperature and
  *             dht.humidity to retrive read data
+ *          -device_name: char*. Name of the device. To be part of the payload
  *          -client: esp_mqtt_client_handle_t. Mqtt client.
  *          -mqtt_configuration: esp_mqtt_client_config_t struct.
  *             Mqtt broker configuration
@@ -93,6 +96,7 @@ void send_dht_data_with_http(DhtSensor *dht_sensor,
  *          -topic_humid: char*. Name of the topic to publish humidity data
  */
 void send_dht_data_with_mqtt(DhtSensor *dht_sensor,
+         char* device_name,
          esp_mqtt_client_handle_t client,
          esp_mqtt_client_config_t mqtt_configuration,
          char* topic_temp, char* topic_humid);

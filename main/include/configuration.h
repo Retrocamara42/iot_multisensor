@@ -13,6 +13,7 @@ typedef struct {
 }http_server_configuration;
 
 typedef struct {
+   char* device_name;
    uint8_t dhtActive;
 }active_devices;
 
