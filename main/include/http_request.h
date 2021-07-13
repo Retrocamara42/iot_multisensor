@@ -1,8 +1,8 @@
 /*
  * dht_driver.h
- * Description: Definition of functions to send an http request.
+ * @description: Definition of functions to send an http request.
  *    Based on esp8266's documentation http_request
- * Author: Juan Manuel Neyra
+ * @author: @Retrocamara42
  *
  */
 #ifndef IOT_HTTP_REQUEST
@@ -32,8 +32,8 @@ esp_err_t _http_event_handler(esp_http_client_event_t *evt);
 /*
  * send_http_post_request: Send a http request
  *    Arguments:
- *       - post_data: Char*. Body of post request
- *       - web_url: Char*. Complete url (with path) of post request
+ *       - post_data: char*. Body of post request
+ *       - web_url: char*. Complete url (with path) of post request
  */
 void send_http_post_request(char* post_data, char* web_url);
 

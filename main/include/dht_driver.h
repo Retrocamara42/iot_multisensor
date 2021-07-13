@@ -1,8 +1,8 @@
 /*
  * dht_driver.h
- * Description: Definition of functions to read data from dht 11
+ * @description: Definition of functions to read data from dht 11
  *    and dht 22 sensors.
- * Author: Juan Manuel Neyra
+ * @author: @Retrocamara42
  *
  */
 #ifndef IOT_DHT_DRIVER
@@ -42,7 +42,15 @@ typedef enum{
 }Dht_Type;
 
 
-// Contains configuration and values read from dht sensor
+/*
+ * DhtSensor: Contains configuration and values read from dht sensor
+ *    - dht_pin: uint8_t. Pin used by dht sensor
+ *    - dht_type: Dht_Type. DHT_11 or DHT_22
+ *    - temperature: float. Stores temperature value
+ *    - humidity: float. Stores humidity value
+ *    - decimal_place: uint8_t. Decimal places to show for temperature
+ *          and humidity
+ */
 typedef struct DhtSensor {
    uint8_t  dht_pin;
    Dht_Type dht_type;
@@ -53,7 +61,8 @@ typedef struct DhtSensor {
 
 
 /*
- * dht_config: Configure gpio port for dht sensor
+ * dht_config: Configure gpio port for dht sensor. Additionally, it initializes
+ *    temperature and humidity to -99
  *       Arguments:
  *          -dht_sensor: DhtSensor struct. Contains configuration options
  *             for dht sensor.

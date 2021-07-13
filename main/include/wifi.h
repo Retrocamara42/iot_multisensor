@@ -1,8 +1,8 @@
 /*
  * wifi.h
- * Description: Definition of functions to connect to wifi.
+ * @description: Definition of functions to connect to wifi.
  *    Based on esp8266's documentation wifi_sta
- * Author: Juan Manuel Neyra
+ * @uthor: @Retrocamara42
  *
  */
 #ifndef IOT_WIFI

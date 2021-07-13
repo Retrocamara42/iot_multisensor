@@ -1,15 +1,15 @@
 /*
  * main.c
- * Description: This program connects to wifi, then sends sensor data in
+ * @description: This program connects to wifi, then sends sensor data in
  *    a predefined interval
- * Author: Juan Manuel Neyra
+ * @author: @Retrocamara42
  *
  */
 #include "main.h"
 
 static const char *MAIN_TAG = "main";
 static SemaphoreHandle_t sleep_semaphore;
-static uint32_t semaphore_count=0;
+static uint32_t sleep_semaphore_count=0;
 // Sleep time in minutes
 static uint16_t sleep_time=SLEEP_TIME;
 
@@ -19,12 +19,26 @@ static uint16_t sleep_time=SLEEP_TIME;
  */
 void hw_timer_sleep(void *arg){
     esp_task_wdt_reset();
-    semaphore_count++;
-    if(semaphore_count>(60*sleep_time)){
-      semaphore_count=0;
+    sleep_semaphore_count++;
+    if(sleep_semaphore_count>(60*sleep_time)){
+      sleep_semaphore_count=0;
       xSemaphoreGive(sleep_semaphore);
     }
 }
+
+
+/*
+ * default_mqtt_on_event_data_cb
+ *   Description: Mqtt function that executes when receiving data
+ */
+void default_mqtt_on_event_data_cb(uint8_t topic_len, char* topic, uint8_t data_len, char* data){
+   for(uint8_t i=0; i<data_len; i++){
+      if(data[i]=='q' && data[i]==':'){
+         xSemaphoreGive(sleep_semaphore);
+      }
+   }
+}
+
 
 
 /*
@@ -89,6 +103,10 @@ void app_main(){
 
    /********************* MQTT SETUP **********************************/
    client = mqtt_app_start(&mqtt_cfg);
+
+   // Subscribe to topics
+   mqtt_subscribe(client, "remote_action", 1);
+   set_mqtt_on_event_data_cb();
 
    // Create task to transmit data
    xTaskCreate(transmit_data_task, "transmit_data_task", 2048*2, NULL, 15, NULL);

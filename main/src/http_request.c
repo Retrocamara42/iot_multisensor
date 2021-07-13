@@ -1,8 +1,8 @@
 /*
  * http_request.c
- * Description: Implementation of functions to send an http request.
+ * @description: Implementation of functions to send an http request.
  *    Based on esp8266's documentation http_request
- * Author: Juan Manuel Neyra
+ * @author: @Retrocamara42
  *
  */
 #include "http_request.h"

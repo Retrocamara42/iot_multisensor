@@ -1,8 +1,8 @@
 /*
  * mqtt_ssl.h
- * Description: Definition of functions to connect to mqtt ssl.
+ * @description: Definition of functions to connect to mqtt ssl.
  *    Based on esp8266's documentation mqtt_ssl
- * Author: Juan Manuel Neyra
+ * @author: @Retrocamara42
  *
  */
 #ifndef IOT_MQTT_SSL
@@ -16,7 +16,25 @@
 #include "esp_log.h"
 #include "mqtt_client.h"
 
-typedef void (*on_event_data_cb)(uint8_t topic_len, char* topic, uint8_t data_len, char* data);
+
+/*
+ * mqtt_on_event_data_cb: Callback function that acts when event data received is
+ *   active
+ *    Arguments:
+ *       - topic_len: uint8_t. Length of topic
+ *       - topic: char*. Topic's name
+ *       - data_len: uint8_t. Length of data received
+ *       - data: char*. Data
+ */
+typedef void (*mqtt_on_event_data_cb)(uint8_t topic_len, char* topic, uint8_t data_len, char* data);
+
+
+/*
+ * mqtt_on_event_data_cb: Function that runs when the event MQTT_EVENT_DATA is active
+ *    Arguments:
+ *       - on_event_data_cb: void*. Custom function to run when data is received
+ */
+void set_mqtt_on_event_data_cb(void (*on_event_data_cb)(uint8_t topic_len, char* topic, uint8_t data_len, char* data));
 
 
 /*

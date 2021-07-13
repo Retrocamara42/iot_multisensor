@@ -1,18 +1,18 @@
-/* MQTT over SSL Example
-
-   This example code is in the Public Domain (or CC0 licensed, at your option.)
-
-   Unless required by applicable law or agreed to in writing, this
-   software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
-   CONDITIONS OF ANY KIND, either express or implied.
-*/
+/*
+ * mqtt_ssl.c
+ * @description: Implementation of functions to connect to mqtt ssl.
+ *    Based on esp8266's documentation mqtt_ssl
+ * @author: @Retrocamara42
+ *
+ */
 #include "mqtt_ssl.h"
 
 static const char *MQTT_TAG = "MQTT_SSL";
 static uint8_t mqttStatusConnection=0;
 
-void default_on_event_data_cb(uint8_t topic_len, char* topic, uint8_t data_len, char* data) { }
-static on_event_data_cb mqtt_on_event_data_cb = &default_on_event_data_cb;
+void default_mqtt_on_event_data_cb(uint8_t topic_len, char* topic, uint8_t data_len, char* data) { }
+
+static mqtt_on_event_data_cb custom_mqtt_on_event_data_cb = &default_mqtt_on_event_data_cb;
 
 
 /*
@@ -21,7 +21,7 @@ static on_event_data_cb mqtt_on_event_data_cb = &default_on_event_data_cb;
  *       - on_event_data_cb: void*. Custom function to run when data is received
  */
 void set_mqtt_on_event_data_cb(void (*on_event_data_cb)(uint8_t topic_len, char* topic, uint8_t data_len, char* data)){
-   mqtt_on_event_data_cb=(*on_event_data_cb);
+   custom_mqtt_on_event_data_cb=(*on_event_data_cb);
 }
 
 
@@ -49,7 +49,7 @@ static esp_err_t mqtt_event_handler_cb(esp_mqtt_event_handle_t event){
         case MQTT_EVENT_DATA:
             printf("TOPIC=%.*s\r\n", event->topic_len, event->topic);
             printf("DATA=%.*s\r\n", event->data_len, event->data);
-            mqtt_on_event_data_cb(event->topic_len, event->topic, event->data_len, event->data);
+            custom_mqtt_on_event_data_cb(event->topic_len, event->topic, event->data_len, event->data);
             break;
         case MQTT_EVENT_ERROR:
             if (event->error_handle->error_type == MQTT_ERROR_TYPE_ESP_TLS) {

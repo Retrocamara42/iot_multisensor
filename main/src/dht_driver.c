@@ -1,8 +1,8 @@
 /*
  * dht_driver.c
- * Description: Implementation of functions to read data from dht 11
+ * @description: Implementation of functions to read data from dht 11
  *    and dht 22 sensors.
- * Author: Juan Manuel Neyra
+ * @author: @Retrocamara42
  *
  */
 #include "dht_driver.h"
@@ -10,7 +10,8 @@
 static char *DHT_TAG = "dht";
 
 /*
- * dht_config: Configure gpio port for dht sensor
+ * dht_config: Configure gpio port for dht sensor. Additionally, it initializes
+ *    temperature and humidity to -99
  *       Arguments:
  *          -dht_sensor: DhtSensor struct. Contains configuration options
  *             for dht sensor.
@@ -29,8 +30,8 @@ void dht_config(DhtSensor **dht_sensor){
    io_conf.pull_up_en = 0;
    gpio_config(&io_conf);
 
-   (*dht_sensor)->temperature=-1;
-   (*dht_sensor)->humidity=-1;
+   (*dht_sensor)->temperature=-99;
+   (*dht_sensor)->humidity=-99;
 }
 
 
@@ -56,8 +57,6 @@ void dht_read_data(DhtSensor **dht_sensor){
    float temperature;
    float humidity;
 
-   // Enter critical section
-   //taskENTER_CRITICAL();
    for(uint8_t k=0; k<MAX_DHT_READING; k++){
       // Initialize with zero
       data[0] = data[1] = data[2] = data[3] = data[4] = 0;
@@ -147,8 +146,8 @@ void dht_read_data(DhtSensor **dht_sensor){
          // Validating range of dht
          if((temperature>125) || (temperature<-40) || (humidity<0) || (humidity>100)){
             //ESP_LOGI(DHT_TAG, "Invalid range, retrying...");
-            temperature = -1;
-            humidity = -1;
+            temperature = -99;
+            humidity = -99;
             // Waiting 2.5s before making another reading
             vTaskDelay(2500/portTICK_RATE_MS);
             continue;
@@ -163,14 +162,12 @@ void dht_read_data(DhtSensor **dht_sensor){
       }
       else{
          ESP_LOGI(DHT_TAG, "Bad data found in try: %d",k);
-         humidity = -1;
-         temperature = -1;
+         humidity = -99;
+         temperature = -99;
          // Waiting 2.5s before making another reading
          vTaskDelay(2500/portTICK_RATE_MS);
       }
    }
-   // End of critical section
-   //taskEXIT_CRITICAL();
    (*dht_sensor)->temperature=temperature;
    (*dht_sensor)->humidity=humidity;
    //ESP_LOGI(DHT_TAG, "Temperature %d",(int)temperature);

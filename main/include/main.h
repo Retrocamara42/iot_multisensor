@@ -1,7 +1,7 @@
 /*
  * main.h
- * Description: Definitions for file main.c
- * Author: Juan Manuel Neyra
+ * @description: Definitions for file main.c
+ * @author: Juan Manuel Neyra
  *
  */
 #ifndef IOT_MAIN
@@ -28,6 +28,7 @@
 // Sleep time in minutes
 #define SLEEP_TIME 15
 
+// Certificate for AWS IoT Core
 extern const uint8_t iot_cert_pem_start[]   asm("_binary_AmazonRootCA1_pem_start");
 extern const uint8_t iot_cert_pem_end[]   asm("_binary_AmazonRootCA1_pem_end");
 

@@ -1,8 +1,8 @@
 /*
  * wifi.h
- * Description: Implementation of functions to connect to wifi.
+ * @description: Implementation of functions to connect to wifi.
  *    Based on esp8266's documentation wifi_sta
- * Author: Juan Manuel Neyra
+ * @author: @Retrocamara42
  *
  */
 #include "wifi.h"
