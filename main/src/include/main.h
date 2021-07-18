@@ -25,6 +25,7 @@
 #define DEVICE_NAME "iot_ms"
 #define TEMPERATURE_TOPIC "temperature"
 #define HUMIDITY_TOPIC "humidity"
+#define SUBSCRIBE_TOPIC "remote_action"
 // Sleep time in minutes
 #define SLEEP_TIME 15
 
@@ -61,6 +62,29 @@ const esp_mqtt_client_config_t mqtt_cfg = {
     .client_cert_pem = (const char *)iot_client_cert_pem_start,
     .client_key_pem = (const char *)iot_key_pem_start,
 };
+
+
+/******************* FUNCTION DEFINITIONS *****************************************/
+/*
+ * hw_timer_sleep
+ *   Description: Sends task to sleep
+ */
+void hw_timer_sleep(void *arg);
+
+
+/*
+ * my_custom_mqtt_on_event_data_cb
+ *   Description: Mqtt function that executes when receiving data
+ */
+void my_custom_mqtt_on_event_data_cb(uint8_t topic_len, char* topic, uint8_t data_len, char* data);
+
+
+
+/*
+ * transmit_data_task
+ *   Description: Reads data from sensors and send them to server
+ */
+static void transmit_data_task();
 
 
 #endif

@@ -28,12 +28,13 @@ void hw_timer_sleep(void *arg){
 
 
 /*
- * default_mqtt_on_event_data_cb
+ * my_custom_mqtt_on_event_data_cb
  *   Description: Mqtt function that executes when receiving data
  */
-void default_mqtt_on_event_data_cb(uint8_t topic_len, char* topic, uint8_t data_len, char* data){
-   for(uint8_t i=0; i<data_len; i++){
-      if(data[i]=='q' && data[i]==':'){
+void my_custom_mqtt_on_event_data_cb(uint8_t topic_len, char* topic, uint8_t data_len, char* data){
+   for(uint8_t i=0; (i+2)<data_len; i++){
+      if(data[i]=='q' && data[i+2]==':'){
+         ESP_LOGI(MAIN_TAG, "Waking up device");
          xSemaphoreGive(sleep_semaphore);
       }
    }
@@ -105,8 +106,8 @@ void app_main(){
    client = mqtt_app_start(&mqtt_cfg);
 
    // Subscribe to topics
-   mqtt_subscribe(client, "remote_action", 1);
-   set_mqtt_on_event_data_cb();
+   set_mqtt_on_event_data_cb(&my_custom_mqtt_on_event_data_cb);
+   mqtt_subscribe(client, SUBSCRIBE_TOPIC, 1);
 
    // Create task to transmit data
    xTaskCreate(transmit_data_task, "transmit_data_task", 2048*2, NULL, 15, NULL);
