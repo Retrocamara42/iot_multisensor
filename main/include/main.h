@@ -17,9 +17,9 @@
 #include "dht_driver.h"
 #include "mqtt_client.h"
 #include "mqtt_ssl.h"
+#include <dht.h>
 
 /******************* DHT SENSOR CONFIGURATION ************************************/
-#define GPIO_PIN_DHT GPIO_NUM_16
 #define DEC_PLACE_MULTIPLIER 100
 #define CONFIG_BROKER_URI IOT_CORE_MQTT_URI
 #define DEVICE_NAME "iot_ms"

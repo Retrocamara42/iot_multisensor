@@ -22,6 +22,8 @@
 #include "http_request.h"
 #include "mqtt_client.h"
 
+#include <dht.h>
+
 // Amount of cycles to be transmitted
 #define CYCLES_READ 40
 
@@ -52,11 +54,10 @@ typedef enum{
  *          and humidity
  */
 typedef struct DhtSensor {
-   uint8_t  dht_pin;
-   Dht_Type dht_type;
+   gpio_num_t  dht_pin;
+   dht_sensor_type_t dht_type;
    float temperature;
    float humidity;
-   uint8_t decimal_place;
 } DhtSensor;
 
 
@@ -71,12 +72,12 @@ void dht_config(DhtSensor **dht_sensor);
 
 
 /*
- * dht_read_data: Get temperature and humidity values from sensors
+ * dht_read_and_process_data: Get temperature and humidity values from sensors
  *       Arguments:
  *          -dht_sensor: DhtSensor struct. Use dht_sensor.temperature and
  *             dht.humidity to retrive read data
  */
-void dht_read_data(DhtSensor **dht_sensor);
+void dht_read_and_process_data(DhtSensor **dht_sensor);
 
 
 /*

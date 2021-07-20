@@ -12,6 +12,9 @@ static SemaphoreHandle_t sleep_semaphore;
 static uint32_t sleep_semaphore_count=0;
 // Sleep time in minutes
 static uint16_t sleep_time=SLEEP_TIME;
+static const dht_sensor_type_t sensor_type = DHT_TYPE_DHT11;
+static const gpio_num_t dht_gpio = GPIO_NUM_0;
+
 
 /*
  * hw_timer_sleep
@@ -52,9 +55,8 @@ static void transmit_data_task(){
    DhtSensor *dht_sensor;
    if(iot_active_devices.dhtActive){
       dht_sensor = (DhtSensor*)malloc(sizeof(DhtSensor));
-      dht_sensor->dht_pin = GPIO_PIN_DHT;
-      dht_sensor->dht_type = DHT_11;
-      dht_sensor->decimal_place = DEC_PLACE_MULTIPLIER;
+      dht_sensor->dht_pin = dht_gpio;
+      dht_sensor->dht_type = sensor_type;
       dht_config(&dht_sensor);
    }
    sleep_semaphore = xSemaphoreCreateBinary();
@@ -65,8 +67,9 @@ static void transmit_data_task(){
       ESP_LOGI(MAIN_TAG, "Reading data from sensors");
       /******** DHT ***********/
       if(iot_active_devices.dhtActive){
-         dht_read_data(&dht_sensor);
-         send_dht_data_with_mqtt(dht_sensor, iot_active_devices.device_name,
+         dht_read_and_process_data(&dht_sensor);
+         send_dht_data_with_mqtt(dht_sensor,
+            iot_active_devices.device_name,
             client, mqtt_cfg, TEMPERATURE_TOPIC,HUMIDITY_TOPIC);
       }
 

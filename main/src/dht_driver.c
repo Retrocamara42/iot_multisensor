@@ -36,164 +36,51 @@ void dht_config(DhtSensor **dht_sensor){
 
 
 /*
- * dht_read_data: Get temperature and humidity values from sensors
+ * dht_read_and_process_data: Get temperature and humidity values from sensors
  *       Arguments:
  *          -dht_sensor: DhtSensor struct. Use dht_sensor.temperature and
  *             dht.humidity to retrive read data
  */
-void dht_read_data(DhtSensor **dht_sensor){
+void dht_read_and_process_data(DhtSensor **dht_sensor){
    esp_task_wdt_reset();
-   // Store dht data
-   int data[5] = {0, 0, 0, 0, 0};
-   // Counts how many microseconds the pin is in high or in low state
-   uint32_t counter = 0;
-   // If counter is higher than this value in seconds, there was an error
-   uint32_t maxCounter = 1000;
-
-   /*
-    * Detect change and read data. Repeated MAX_DHT_READING times or until
-    * correct value is obtained
-    */
-   float temperature;
-   float humidity;
-
-   for(uint8_t k=0; k<MAX_DHT_READING; k++){
-      // Initialize with zero
-      data[0] = data[1] = data[2] = data[3] = data[4] = 0;
-
-      // Data should be sent in 40 cycle (5 bytes)
-      uint32_t cycles[CYCLES_READ];
-
-      // Reconfigure pin as output
-      gpio_pulldown_dis((*dht_sensor)->dht_pin);
-      gpio_set_direction((*dht_sensor)->dht_pin, GPIO_MODE_OUTPUT);
-      gpio_set_level((*dht_sensor)->dht_pin, GPIO_LEVEL_LOW);
-
-      if((*dht_sensor)->dht_type==DHT_11){
-         // Wait 20 miliseconds if device is dht11
-         vTaskDelay(20/portTICK_RATE_MS);
-      }
-      else{
-         // Wait at least 1 milisecond if device is dht22
-         ets_delay_us(1200);
-      }
-
-      // Reconfiguring gpio pin as input
-      gpio_set_direction((*dht_sensor)->dht_pin, GPIO_MODE_INPUT);
-      gpio_pulldown_en((*dht_sensor)->dht_pin);
-
-      // Waiting for response start
-      ets_delay_us(40);
-
-      /**** First read *****/
-      while(gpio_get_level((*dht_sensor)->dht_pin) == GPIO_LEVEL_LOW) {
-        ets_delay_us(1);
-        if(counter++ >= maxCounter) { break; }
-      }
-
-      while(gpio_get_level((*dht_sensor)->dht_pin) == GPIO_LEVEL_HIGH) {
-        ets_delay_us(1);
-        if (counter++ >= maxCounter) { break; }
-      }
-      /********************/
-
-      // Reading dht transmitted message
-      for(uint8_t i = 0; i < CYCLES_READ; i+=1){
-         // Restart counter
-         counter = 0;
-         while(gpio_get_level((*dht_sensor)->dht_pin) == GPIO_LEVEL_LOW) {
-           ets_delay_us(1);
-           if (counter++ >= maxCounter) { break; }
-         }
-         // Restart counter
-         counter = 0;
-         while(gpio_get_level((*dht_sensor)->dht_pin) == GPIO_LEVEL_HIGH){
-           ets_delay_us(1);
-           if (counter++ >= maxCounter) { break; }
-         }
-         cycles[i]=counter;
-      }
-
-      // Translate results into bits
-      uint8_t j = 0;
-      float timePassedInUs;
-      for(uint8_t i =0; i < CYCLES_READ; i+=1){
-         //ESP_LOGI(DHT_TAG, "Cycle %d: %d",i,cycles[i]);
-         timePassedInUs = cycles[i];
-         data[j/8] <<= 1;
-         // If counter was above 20us, bit is 1
-         if(timePassedInUs>=20)
-            data[j/8] |= 1;
-         j++;
-      }
-
-      // Validate data: 40 bits read + checksum
-      if((j >= 40) && (data[4] == ((data[0] + data[1] + data[2] + data[3]) & 0xFF))){
-         //ESP_LOGI(DHT_TAG, "Checksum validated");
-         humidity = (float)((data[0] << 8) + data[1]) / 10;
-         if(((*dht_sensor)->dht_type==DHT_11) && humidity > 100){
-            humidity = data[0];	// for DHT11
-         }
-
-         temperature = (((data[2] & 0x7F) << 8) + data[3]) / 10;
-         if((*dht_sensor)->dht_type==DHT_11 && temperature > 125){
-            temperature = data[2];	// for DHT11
-         }
-         if(data[2] & 0x80){
-            temperature = -temperature;
-         }
-
-         // Validating range of dht
-         if((temperature>125) || (temperature<-40) || (humidity<0) || (humidity>100)){
-            //ESP_LOGI(DHT_TAG, "Invalid range, retrying...");
-            temperature = -99;
-            humidity = -99;
-            // Waiting 2.5s before making another reading
-            vTaskDelay(2500/portTICK_RATE_MS);
-            continue;
-         }
-         else if(temperature==0 && humidity==0){
-            // Waiting 2.5s before making another reading
-            vTaskDelay(2500/portTICK_RATE_MS);
-            continue;
-         }
-         ESP_LOGI(DHT_TAG, "Good data found");
-         break;
-      }
-      else{
-         ESP_LOGI(DHT_TAG, "Bad data found in try: %d",k);
-         humidity = -99;
-         temperature = -99;
-         // Waiting 2.5s before making another reading
-         vTaskDelay(2500/portTICK_RATE_MS);
-      }
+   float temperature=0;
+   float humidity=0;
+   if (dht_read_float_data((**dht_sensor).dht_type, (**dht_sensor).dht_pin, &humidity, &temperature) != ESP_OK){
+      (*dht_sensor)->temperature=-99;
+      (*dht_sensor)->humidity=-99;
    }
-   (*dht_sensor)->temperature=temperature;
-   (*dht_sensor)->humidity=humidity;
-   //ESP_LOGI(DHT_TAG, "Temperature %d",(int)temperature);
-   //ESP_LOGI(DHT_TAG, "Humidity %d",(int)humidity);
+   else{
+      (*dht_sensor)->temperature=temperature;
+      (*dht_sensor)->humidity=humidity;
+   }
 }
 
 
 
 /*
- * send_dht_data_with_http: Send dht data with http
- *       Arguments:
- *          -dht_sensor: DhtSensor struct. Use dht_sensor.temperature and
- *             dht.humidity to retrive read data
- *          -device_name: char*. Name of the device. To be part of the payload
- *          -http_server_configuration: http_server_configuration struct.
- *             Information of the server where to send the data to
+ * @function send_dht_data_with_http
+ *    @brief Send dht data with http
+ *
+ *    @param dht_sensor: DhtSensor struct. Use dht_sensor.temperature and
+ *        dht.humidity to retrive read data
+ *    @param device_name: char*. Name of the device. To be part of the payload
+ *    @ param http_server_configuration: http_server_configuration struct.
+ *        Information of the server where to send the data to
  */
 void send_dht_data_with_http(DhtSensor *dht_sensor,
          char* device_name, http_server_configuration http_server_configuration){
    esp_task_wdt_reset();
-   uint8_t dht_dec_place=dht_sensor->decimal_place;
+   uint8_t dht_dec_place=dht_sensor->dht_type==DHT_TYPE_DHT11?0:2;
    /******************** TEMPERATURE ***********************/
    // PROCESSING
    char chTemp[7];
    float temperature=(float)dht_sensor->temperature;
-   int dec_temp=(int)((dht_dec_place*abs(temperature))%dht_dec_place);
+   int dec_temp;
+   if(dht_dec_place==0)
+      dec_temp=0;
+   else
+      dec_temp=(int)((dht_dec_place*abs(temperature))%dht_dec_place);
+
    snprintf(chTemp, sizeof chTemp, "%d.%d", (int)floor(temperature), dec_temp);
    // SENDING
    char post_data_temp[48];
@@ -208,7 +95,12 @@ void send_dht_data_with_http(DhtSensor *dht_sensor,
    // PROCESSING
    char chHumid[7];
    float humidity=dht_sensor->humidity;
-   int dec_humid=(int)((dht_dec_place*abs(humidity))%dht_dec_place);
+   int dec_humid;
+   if(dht_dec_place==0)
+      dec_humid=0;
+   else
+      dec_humid=(int)((dht_dec_place*abs(humidity))%dht_dec_place);
+
    snprintf(chHumid, sizeof chHumid, "%d.%d", (int)floor(humidity), dec_humid);
    // SENDING
    char post_data_hum[48];
@@ -242,12 +134,17 @@ void send_dht_data_with_mqtt(DhtSensor *dht_sensor,
          esp_mqtt_client_config_t mqtt_configuration,
          char* topic_temp, char* topic_humid){
    esp_task_wdt_reset();
-   uint8_t dht_dec_place=dht_sensor->decimal_place;
+   uint8_t dht_dec_place=dht_sensor->dht_type==DHT_TYPE_DHT11?0:2;
    /******************** TEMPERATURE ***********************/
    // PROCESSING
    char chTemp[7];
    float temperature=(float)dht_sensor->temperature;
-   int dec_temp=(int)((dht_dec_place*abs(temperature))%dht_dec_place);
+   uint8_t dec_temp;
+   if(dht_dec_place==0)
+      dec_temp=0;
+   else
+      dec_temp=(int)((dht_dec_place*abs(temperature))%dht_dec_place);
+
    snprintf(chTemp, sizeof chTemp, "%d.%d", (int)floor(temperature), dec_temp);
    // SENDING
    char post_data_temp[48];
@@ -256,7 +153,7 @@ void send_dht_data_with_mqtt(DhtSensor *dht_sensor,
    strcat(post_data_temp, "\",\"temp\":");
    strcat(post_data_temp, chTemp);
    strcat(post_data_temp, "}");
-   //ESP_LOGI(DHT_TAG, "Sending temperature data: %s",post_data_temp);
+   ESP_LOGI(DHT_TAG, "Sending temperature data: %s",post_data_temp);
    esp_task_wdt_reset();
    uint8_t msg_id = esp_mqtt_client_publish(client, topic_temp, post_data_temp, 0, 0, 0);
    ESP_LOGI(DHT_TAG, "temp publish successful, msg_id=%d", msg_id);
@@ -265,7 +162,12 @@ void send_dht_data_with_mqtt(DhtSensor *dht_sensor,
    // PROCESSING
    char chHumid[7];
    float humidity=dht_sensor->humidity;
-   int dec_humid=(int)((dht_dec_place*abs(humidity))%dht_dec_place);
+   uint8_t dec_humid;
+   if(dht_dec_place==0)
+      dec_humid=0;
+   else
+      dec_humid=(int)((dht_dec_place*abs(humidity))%dht_dec_place);
+
    snprintf(chHumid, sizeof chHumid, "%d.%d", (int)floor(humidity), dec_humid);
    // SENDING
    char post_data_hum[48];
@@ -274,7 +176,7 @@ void send_dht_data_with_mqtt(DhtSensor *dht_sensor,
    strcat(post_data_hum, "\",\"humid\":");
    strcat(post_data_hum, chHumid);
    strcat(post_data_hum, "}");
-   //ESP_LOGI(DHT_TAG, "Sending humidity data: %s",post_data_hum);
+   ESP_LOGI(DHT_TAG, "Sending humidity data: %s",post_data_hum);
    esp_task_wdt_reset();
    msg_id = esp_mqtt_client_publish(client, topic_humid, post_data_hum, 0, 0, 0);
    ESP_LOGI(DHT_TAG, "humid publish successful, msg_id=%d", msg_id);

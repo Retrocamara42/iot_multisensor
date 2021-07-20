@@ -1,5 +1,0 @@
-#define IOT_CORE_MQTT_URI "mqtts://a596fikiaw4lr-ats.iot.us-east-2.amazonaws.com:8883"
-#define WIFI_SSID "ZCL12"
-#define WIFI_PWD "PR1nC0l4Z."
-#define WIFI_SSID "MELANIE"
-#define WIFI_PWD "pandabonita28"
